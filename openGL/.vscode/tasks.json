@@ -1,0 +1,43 @@
+{
+    "version": "2.0.0",
+    "options": {
+        "cwd": "${workspaceFolder}/build/"
+    },
+ 
+    "tasks": [
+        {
+            "label": "cmake",    //camke ..命令
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                ".."
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/build/"
+            },
+        },
+        {
+            "label": "make",   //mingw32-make.exe命令
+            "group":{
+                "kind":"build",
+                "isDefault":true
+            },
+            "command": "make",
+            "args":[
+                "-j4"
+            ],
+            "dependsOn" : [ "cmake" ],
+            "options": {
+                "cwd": "${workspaceFolder}/build/"
+            },
+        },
+        {
+            "label":"build", //运行前面两个任务
+            "dependsOn":[
+                "cmake",
+                "make"                
+            ]
+        }
+    ]
+}
+ 
