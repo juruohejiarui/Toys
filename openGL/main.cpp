@@ -44,16 +44,6 @@ int main(int argc, char** argv){
     }
     GLuint shaderProgram;
     loadShaders(shaderProgram);
-    
-    Object obj;
-    memset(&obj, 0, sizeof(obj));
-    obj.vertices = (Vertex *)traingle1;
-    obj.indices = traingleIndices1;
-    obj.verticesNum = 4;
-    obj.indicesNum = 6;
-    obj.usage = GL_STREAM_DRAW;
-
-    registerObject(&obj);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -63,7 +53,6 @@ int main(int argc, char** argv){
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
-        drawObject(&obj);
 
         glfwPollEvents();
         glfwSwapBuffers(window);

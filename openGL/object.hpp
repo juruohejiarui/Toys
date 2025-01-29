@@ -1,21 +1,26 @@
 #pragma once
+
+#include <vector>
+#include <glm/glm.hpp>
 #include <GL/glew.h>
+#include "shader.hpp"
+#include "camera.hpp"
 
-struct Vertex {
-    GLfloat x, y, z;
-    GLfloat textureX, textureY;
+struct Object : BaseObject {
+private:
+    GLuint vao, vbo[3], texture;
+    Shader *shader;
+    
+    size_t numVertices;
+    glm::vec3 *vertices, *normalVecs;
+    glm::vec2 *texCoords;
+
+public:
+    Object();
+    friend Object *loadObject(const std::string &path);
+
+    void setShader(Shader *shader);
+    Shader *getShader() const;
+
+    void display();
 };
-
-struct Object {
-    GLuint vbo, vao, ebo;
-    GLuint usage;
-    Vertex *vertices;
-    GLuint *indices;
-    GLuint verticesNum;
-    GLuint indicesNum;
-};
-
-// add vertices and 
-int registerObject(Object *obj);
-
-int drawObject(Object *obj);

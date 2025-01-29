@@ -1,37 +1,74 @@
 #include "object.hpp"
+#include <fstream>
+#include <sstream>
+#include <cstring>
 
-int registerObject(Object *obj) {
-    glGenVertexArrays(1, &obj->vao);
-    glGenBuffers(1, &obj->vbo);
-    glGenBuffers(1, &obj->ebo);   
+Object *loadObject(const std::string &path) {
+    float x, y, z;
+    std::string line;
+    std::ifstream ifs(path, std::ios::in);
 
-    glBindVertexArray(obj->vao);
+    Object *obj = new Object();
 
-    glBindBuffer(GL_ARRAY_BUFFER, obj->vbo);
-    glBufferData(GL_ARRAY_BUFFER, obj->verticesNum * sizeof(Vertex), obj->vertices, obj->usage);
+    std::vector<glm::vec3> vertices, normVecs;
+    std::vector<glm::vec2> texCoords;
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj->ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, obj->indicesNum * sizeof(GLuint), obj->indices, obj->usage);
+    std::vector<glm::vec3> triVert, triNormVecs;
+    std::vector<glm::vec2> triTexCoords;
+    
+    while (!ifs.eof()) {
+        std::getline(ifs, line);
+        if (line.compare(0, 2, "v ") == 0) {
+            std::stringstream ss(line.erase(0, 1));
+            ss >> x >> y >> z;
+            vertices.push_back(glm::vec3(x, y, z));
+        } else if (line.compare(0, 2, "vt") == 0) {
+            std::stringstream ss(line.erase(0, 2));
+            ss >> x >> y;
+            texCoords.push_back(glm::vec2(x, y));
+        } else if (line.compare(0, 2, "vn") == 0) {
+            std::stringstream ss(line.erase(0, 2));
+            ss >> x >> y >> z;
+            normVecs.push_back(glm::vec3(x, y, z));
+        } else if (line[0] == 'f') {
+            std::string cor, v, t, n;
+            std::stringstream ss(line.erase(0, 2));
+            for (int i = 0; i < 3; i++) {
+                std::getline(ss, cor, ' ');
+                std::stringstream corss(cor);
+                std::getline(corss, v, '/');
+                std::getline(corss, t, '/');
+                std::getline(corss, n, '/');
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
-    glEnableVertexAttribArray(0);
+                size_t vertId = std::stoi(v) - 1, texId = std::stoi(t) - 1, norId = std::stoi(n) - 1;
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-    // glBindVertexArray(obj->vao[1]);
-    // glBindBuffer(GL_ARRAY_BUFFER, obj->vbo[1]);
-    // glBufferData(GL_ARRAY_BUFFER, obj->textureNum, obj->texture, obj->usage);
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj->ebo[1]);
-    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, obj->textureIndicesNum, obj->textureIndices, obj->usage);
-    // glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (void *)0);
-
-    return 1;
+                triVert.push_back(vertices[vertId]);
+                triNormVecs.push_back(normVecs[norId]);
+                triTexCoords.push_back(texCoords[texId]);
+            }
+        }
+    }
+    obj->numVertices = triVert.size();
+    obj->vertices       = new glm::vec3[obj->numVertices];
+    obj->normalVecs     = new glm::vec3[obj->numVertices];
+    obj->texCoords      = new glm::vec2[obj->numVertices];
+    memcpy(obj->vertices, &triVert[0], obj->numVertices * sizeof(glm::vec3));
+    memcpy(obj->normalVecs, &triNormVecs[0], obj->numVertices * sizeof(glm::vec3));
+    memcpy(obj->texCoords, &triTexCoords[0], obj->numVertices * sizeof(glm::vec2));
+    return obj;
 }
 
-int drawObject(Object *obj) {
-    glBindVertexArray(obj->vao);
-    glDrawElements(GL_TRIANGLES, obj->indicesNum, GL_UNSIGNED_INT, (void *)0);
-    glBindVertexArray(0);
-    return 1;
+Object::Object() : BaseObject(ObjectType::Object) {
+    vao = texture = 0;
+    memset(vbo, 0, sizeof(vbo));
+
+    shader = nullptr;
+
+    numVertices = 0;
+    vertices = normalVecs = nullptr;
+    texCoords = nullptr;
 }
+
+void Object::setShader(Shader *shader) { this->shader = shader; }
+
+Shader *Object::getShader() const { return shader; }

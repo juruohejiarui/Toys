@@ -64,3 +64,11 @@ int loadShaders(GLuint &shaderProgram) {
     std::cout << std::format("successful to link shader program.\n");
     return 1;
 }
+
+Shader::Shader(GLuint program) {
+    this->program = program;
+}
+
+void Shader::use() {
+    glUseProgram(this->program);
+}
