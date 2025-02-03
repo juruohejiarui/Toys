@@ -1,23 +1,35 @@
 #pragma once
 
 #include <vector>
+#include <string>
 #include <glm/glm.hpp>
 #include <GL/glew.h>
 #include "shader.hpp"
 #include "camera.hpp"
 
-struct Object : BaseObject {
-private:
-    GLuint vao, vbo[3], texture;
+struct Object3DVertix {
+    glm::vec3 pos;
+    glm::vec3 norv;
+    glm::vec2 texc;
+    Object3DVertix() = default;
+    Object3DVertix(const glm::vec3 &pos, const glm::vec3 &norv, const glm::vec2 &texc);
+};
+
+struct Object3D : BaseObject {
+protected:
+    GLuint vao, vbo, texture;
     Shader *shader;
     
     size_t numVertices;
-    glm::vec3 *vertices, *normalVecs;
-    glm::vec2 *texCoords;
+    Object3DVertix *vertices;
 
 public:
-    Object();
-    friend Object *loadObject(const std::string &path);
+    int getVAO() const;
+    int registerObject();
+    int unregisterObject();
+    int load(const std::string &path);
+
+    Object3D();
 
     void setShader(Shader *shader);
     Shader *getShader() const;

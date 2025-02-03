@@ -41,11 +41,11 @@ int getShader(uint32_t shaderType, const std::string &path, GLuint &shader) {
     return 1;
 }
 
-int loadShaders(GLuint &shaderProgram) {
+int loadShaders(GLuint &shaderProgram, const std::string &vertPath, const std::string &fragPath) {
     GLuint vertShader, fragShader;
-    int res = getShader(GL_VERTEX_SHADER, "./vertex.vert", vertShader);
+    int res = getShader(GL_VERTEX_SHADER, vertPath.c_str(), vertShader);
     if (!res) return 0;
-    res = getShader(GL_FRAGMENT_SHADER, "./fragment.frag", fragShader);
+    res = getShader(GL_FRAGMENT_SHADER, fragPath.c_str(), fragShader);
     if (!res) return 0;
     shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, vertShader);
@@ -65,10 +65,30 @@ int loadShaders(GLuint &shaderProgram) {
     return 1;
 }
 
+int delShaders(GLuint &shaderProgram) {
+    glDeleteShader(shaderProgram);
+    return 0;
+}
+
 Shader::Shader(GLuint program) {
     this->program = program;
 }
 
 void Shader::use() {
     glUseProgram(this->program);
+}
+
+GLint Shader::getUniformLoc(const std::string &name) {
+    return glGetUniformLocation(program, name.c_str());
+}
+
+void Shader::setUniform(GLint loc, float value) { glUniform1f(loc, value); }
+void Shader::setUniform(GLint loc, int value) { glUniform1i(loc, value); }
+void Shader::setUniform(GLint loc, const glm::vec3 &value) { glUniform3fv(loc, 1, &value[0]); }
+void Shader::setUniform(GLint loc, const glm::vec4 &value) { glUniform4fv(loc, 1, &value[1]); }
+void Shader::setUniform(GLint loc, const glm::mat3 &value) {
+    glUniformMatrix3fv(loc, 1, GL_FALSE, &value[0][0]);
+}
+void Shader::setUniform(GLint loc, const glm::mat4 &value) {
+    glUniformMatrix4fv(loc, 1, GL_FALSE, &value[0][0]);
 }

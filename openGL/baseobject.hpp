@@ -6,7 +6,7 @@
 #include <vector>
 
 enum class ObjectType {
-    Empty, Camera, Object, Object2D
+    Empty, Camera, Object3D, Object2D, Light
 };
 
 enum class ObjectVisibility {
@@ -14,7 +14,7 @@ enum class ObjectVisibility {
 };
 
 struct BaseObject {
-private:
+protected:
     glm::vec3 position, scaler;
     glm::quat rotationQuat;
 
@@ -35,7 +35,16 @@ public:
     void rotateAround(const glm::vec3 &pivot, const glm::vec3 &axis, float angle);
     void lookAt(glm::vec3 pos, glm::vec3 up);
     void scale(glm::vec3 vec);
-    glm::vec3 getRotateEuler();
+
+    glm::vec3 getRotateEuler() const;
+    glm::vec3 getPosition() const;
+    glm::vec3 getScale() const;
+
+    void setPosition(const glm::vec3 &vec);
+    void setRotation(const glm::vec3 &euler);
+    void setScale(const glm::vec3 &scale);
+
+    glm::mat4 getModelMat() const;
 
     BaseObject *getParent() const;
     void setParent(BaseObject *parent);

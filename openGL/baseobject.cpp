@@ -4,15 +4,14 @@
 
 BaseObject::BaseObject(ObjectType type, ObjectVisibility visibility) {
     position        = glm::vec3(0);
-    rotationQuat    = glm::quat(1, 0, 0, 0);
+    rotationQuat    = glm::quat(glm::vec3(0.0f));
     scaler          = glm::vec3(1.0f);
     this->visibility = visibility;
     this->type = type;
     parent = nullptr;
 }
 
-inline void BaseObject::translateGlobal(const glm::vec3 &vec)
-{
+void BaseObject::translateGlobal(const glm::vec3 &vec) {
     this->position += vec;
 }
 
@@ -50,7 +49,21 @@ void BaseObject::lookAt(glm::vec3 pos, glm::vec3 up) {
 
 void BaseObject::scale(glm::vec3 vec) { scaler = vec * scaler; }
 
-glm::vec3 BaseObject::getRotateEuler() { return glm::eulerAngles(rotationQuat); }
+glm::vec3 BaseObject::getPosition() const { return this->position; }
+glm::vec3 BaseObject::getRotateEuler() const { return glm::eulerAngles(rotationQuat); }
+glm::vec3 BaseObject::getScale() const { return this->scaler; }
+
+void BaseObject::setPosition(const glm::vec3 &vec) { this->position = vec; }
+void BaseObject::setRotation(const glm::vec3 &euler) { this->rotationQuat = glm::quat(euler); }
+void BaseObject::setScale(const glm::vec3 &scale) { this->scaler = scale; }
+
+glm::mat4 BaseObject::getModelMat() const {
+    glm::mat4 
+        tran = glm::translate(glm::mat4(1.0f), this->position),
+        rota = glm::mat4_cast(this->rotationQuat),
+        scal = glm::scale(glm::mat4(1.0f), this->scaler);
+    return tran * rota * scal;
+}
 
 BaseObject *BaseObject::getParent() const { return parent; }
 

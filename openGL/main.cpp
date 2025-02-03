@@ -1,8 +1,10 @@
 #include <iostream>
 #include <cstring>
+#include <format>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "shader.hpp"
+#include "camera.hpp"
 #include "object.hpp"
 
 const int SCR_WIDTH = 1920;
@@ -15,17 +17,6 @@ void processInput() {
         glfwSetWindowShouldClose(window, true);
     }
 }
-
-GLfloat traingle1[] = {
-    0.5f,  0.5f, 0.0f, 0.0f, 0.0f,  // top right
-    0.5f, -0.5f, 0.0f, 0.0f, 0.0f,  // bottom right
-    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,  // bottom left
-    -0.5f,  0.5f, 0.0f, 0.0f, 0.0f   // top left 
-};
-GLuint traingleIndices1[] = {
-    0, 1, 3,
-    1, 2, 3
-};
 
 int main(int argc, char** argv){
     glfwInit();
@@ -42,17 +33,54 @@ int main(int argc, char** argv){
         std::cerr << "Failed to initalize GLEW" << std::endl;
         return -1;
     }
-    GLuint shaderProgram;
-    loadShaders(shaderProgram);
 
+    glEnable(GL_DEPTH_TEST);
+
+    GLuint shaderProgram;
+    int res = loadShaders(shaderProgram, "Shaders/vertex.vert", "Shaders/fragment.frag");
+    if (!res) return -1;
+    Shader shader(shaderProgram);
+
+    Camera camera;
+    camera.setPosition(glm::vec3(0, 0, 3));
+
+    Object3D *obj = new Object3D();
+    res = obj->load("Resources/Apple.obj");
+    if (!res) return -1;
+    obj->setShader(&shader);
+
+    obj->registerObject();
+
+    GLint viewLoc = shader.getUniformLoc("view"),
+        modelLoc = shader.getUniformLoc("model"),
+        projLoc = shader.getUniformLoc("projection"),
+        lightPosLoc = shader.getUniformLoc("lightPos"),
+        viewPosLoc = shader.getUniformLoc("viewPos"),
+        lightColor = shader.getUniformLoc("lightColor");
+
+    float lst = 0;
     while (!glfwWindowShouldClose(window))
     {
         processInput();
 
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glBindVertexArray(obj->getVAO());
 
-        glUseProgram(shaderProgram);
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        shader.use();
+        shader.setUniform(viewLoc, camera.getView());
+        shader.setUniform(projLoc, camera.getProj());
+        shader.setUniform(modelLoc, obj->getModelMat());
+        shader.setUniform(viewPosLoc, camera.getPosition());
+        shader.setUniform(lightPosLoc, glm::vec3(0.0f, 3.0f, 0.0f));
+        shader.setUniform(lightColor, glm::vec3(1.0f, 0.75f, 0.80f));
+        
+        obj->rotateLocal(glm::vec3(0.1f, 0.0f, 0) * (float)(glfwGetTime() - lst));
+
+        lst = glfwGetTime();
+
+        obj->display();
+        glBindVertexArray(0);
 
         glfwPollEvents();
         glfwSwapBuffers(window);
