@@ -18,8 +18,10 @@ struct Object3DVertix {
 struct Object3D : BaseObject {
 protected:
     GLuint vao, vbo, texture;
+
     Shader *shader;
-    
+    GLuint shaderModelLoc;
+
     size_t numVertices;
     Object3DVertix *vertices;
 

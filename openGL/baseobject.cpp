@@ -4,7 +4,7 @@
 
 BaseObject::BaseObject(ObjectType type, ObjectVisibility visibility) {
     position        = glm::vec3(0);
-    rotationQuat    = glm::quat(glm::vec3(0.0f));
+    rotationQuat    = glm::quat(1, 0, 0, 0);
     scaler          = glm::vec3(1.0f);
     this->visibility = visibility;
     this->type = type;
@@ -16,38 +16,32 @@ void BaseObject::translateGlobal(const glm::vec3 &vec) {
 }
 
 void BaseObject::translateLocal(const glm::vec3 &vec) {
-    this->position += glm::vec3(glm::toMat4(this->rotationQuat) * glm::vec4(vec, 0.0f));
+    this->position += this->rotationQuat * vec;
 }
 
-void BaseObject::rotateGlobal(const glm::vec3 &angle) {
-    this->rotationQuat = glm::quat(getRotateEuler() + angle);
-}
-
-void BaseObject::rotateLocal(const glm::vec3 &angle) {
-    this->rotationQuat = glm::quat(angle) * this->rotationQuat;
+void BaseObject::rotate(float angle, const glm::vec3 &axis) {
+    this->rotationQuat = glm::normalize(glm::angleAxis(glm::radians(angle), axis) * rotationQuat);
 }
 
 void BaseObject::rotateAround(const glm::vec3 &pivot, const glm::vec3 &axis, float angle) {
-    angle = glm::radians(angle);
-    glm::vec4 rel = glm::rotate(glm::mat4(1.0f), angle, glm::normalize(axis)) * glm::vec4(position - pivot, 1.0f);
-    position = glm::vec3(rel) + pivot;
-    rotationQuat = glm::angleAxis(angle, glm::normalize(axis)) * rotationQuat;
+    glm::quat rot = glm::angleAxis(glm::radians(angle), axis);
+    position = pivot + rot * (position - pivot);
+    rotationQuat = rot * rotationQuat;
 }
 
 void BaseObject::lookAt(glm::vec3 pos, glm::vec3 up) {
-    glm::vec3 forward = glm::normalize(pos - position),
-        right = glm::normalize(glm::cross(up, forward)),
-        newUp = glm::cross(forward, right);
-    
-    glm::mat4 lookAtMat = glm::mat4(1.0f);
-    lookAtMat[0] = glm::vec4(right, 0.0f);
-    lookAtMat[1] = glm::vec4(newUp, 0.0f);
-    lookAtMat[2] = glm::vec4(forward, 0.0f);
-
-    rotationQuat = glm::quat_cast(lookAtMat);
+    glm::vec3 direction = glm::normalize(pos - position);
+    glm::vec3 right = glm::normalize(glm::cross(up, direction));
+    glm::vec3 correctedUp = glm::cross(direction, right);
+    glm::mat3 lookAtMatrix(right, correctedUp, -direction);
+    rotationQuat = glm::quat_cast(lookAtMatrix);
 }
 
 void BaseObject::scale(glm::vec3 vec) { scaler = vec * scaler; }
+
+glm::vec3 BaseObject::right() const { return rotationQuat * glm::vec3(1, 0, 0); }
+glm::vec3 BaseObject::up() const { return rotationQuat * glm::vec3(0, 1, 0); }
+glm::vec3 BaseObject::forward() const { return rotationQuat * glm::vec3(0, 0, -1); }
 
 glm::vec3 BaseObject::getPosition() const { return this->position; }
 glm::vec3 BaseObject::getRotateEuler() const { return glm::eulerAngles(rotationQuat); }

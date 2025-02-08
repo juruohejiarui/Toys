@@ -20,6 +20,6 @@ void main() {
     vec3 ambient = 0.2 * lightColor;
 
     // **计算最终光照颜色**
-    vec3 result = (ambient + diffuse) * vec3(1.0f, 1.0f, 1.0f);
+    vec3 result = (ambient + diffuse) * vec3(1.0f, 0.0f, 0.0f);
     FragColor = vec4(result, 1.0f);
 }

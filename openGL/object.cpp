@@ -7,8 +7,7 @@
 
 int Object3D::getVAO() const { return vao; }
 
-int Object3D::registerObject()
-{
+int Object3D::registerObject() {
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
 
@@ -71,9 +70,9 @@ int Object3D::load(const std::string &path) {
             unsigned int defNorBit = 0;
             for (int i = 0; i < 4; i++) {
                 std::getline(ss, cor, ' ');
-                size_t vertId, texId, norId;
+                size_t vertId, norId;
                 Object3DVertix vertex;
-                if (cor.length() == 0) {
+                if (cor.length() == 0 || cor == "\r") {
                     if (i == 3) break;
                     printf("invalid face.\n");
                     return 0;
@@ -104,6 +103,7 @@ int Object3D::load(const std::string &path) {
                 if (i == 3) {
                     vertices.push_back(vertices[vertices.size() - 4]);
                     vertices.push_back(vertices[vertices.size() - 3]);
+                    defNorBit = (defNorBit & 1) | (defNorBit >> 1);
                     calcNorv();
                 }
             }
@@ -113,8 +113,6 @@ int Object3D::load(const std::string &path) {
     this->vertices = new Object3DVertix[numVertices];
     memcpy(this->vertices, &vertices[0], numVertices * sizeof(Object3DVertix));
     printf("numVertices = %ld\n", numVertices);
-    for (int i = 0; i < 12; i++)
-        printf("(%.3lf,%.3lf,%.3lf)%c", vertices[i].pos.x, vertices[i].pos.y, vertices[i].pos.z, (i % 3 == 2) ? '\n' : ' ');
     return 1;
 }
 
@@ -128,12 +126,19 @@ Object3D::Object3D() : BaseObject(ObjectType::Object3D) {
     vertices = nullptr;
 }
 
-void Object3D::setShader(Shader *shader) { this->shader = shader; }
+void Object3D::setShader(Shader *shader) {
+    this->shader = shader;
+    shaderModelLoc = shader->getUniformLoc("model");
+}
 
 Shader *Object3D::getShader() const { return shader; }
 
 void Object3D::display() {
+    glBindVertexArray(vao);
+    shader->use();
+    shader->setUniform(shaderModelLoc, getModelMat());
     glDrawArrays(GL_TRIANGLES, 0, numVertices);
+    glBindVertexArray(0);
 }
 
 Object3DVertix::Object3DVertix(const glm::vec3 &pos, const glm::vec3 &norv, const glm::vec2 &texc) {

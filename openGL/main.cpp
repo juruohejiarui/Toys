@@ -11,12 +11,38 @@ const int SCR_WIDTH = 1920;
 const int SCR_HEIGHT = 1080;
 
 GLFWwindow *window;
+Camera camera;
+
+float lstFrameTime = 0;
 
 void processInput() {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
+    const float cameraSpeed = 5.0f; // adjust accordingly
+    const float cameraRotSpeed = 30.0f;
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        camera.translateLocal(glm::vec3(0, 0, -cameraSpeed * (glfwGetTime() - lstFrameTime)));
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        camera.translateLocal(glm::vec3(0, 0, cameraSpeed * (glfwGetTime() - lstFrameTime)));
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        camera.translateLocal(glm::vec3(-cameraSpeed * (glfwGetTime() - lstFrameTime), 0, 0));
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        camera.translateLocal(glm::vec3(cameraSpeed * (glfwGetTime() - lstFrameTime), 0, 0));
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        camera.translateLocal(glm::vec3(0, -cameraSpeed * (glfwGetTime() - lstFrameTime), 0));
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        camera.translateLocal(glm::vec3(0, cameraSpeed * (glfwGetTime() - lstFrameTime), 0));
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        camera.rotate(cameraRotSpeed * (glfwGetTime() - lstFrameTime), camera.right());
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        camera.rotate(-cameraRotSpeed * (glfwGetTime() - lstFrameTime), camera.right());
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+        camera.rotate(cameraRotSpeed * (glfwGetTime() - lstFrameTime), glm::vec3(0, 1.0f, 0));
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        camera.rotate(-cameraRotSpeed * (glfwGetTime() - lstFrameTime), glm::vec3(0, 1.0f, 0));
 }
+
 
 int main(int argc, char** argv){
     glfwInit();
@@ -41,11 +67,14 @@ int main(int argc, char** argv){
     if (!res) return -1;
     Shader shader(shaderProgram);
 
-    Camera camera;
-    camera.setPosition(glm::vec3(0, 0, 3));
+    camera.setPosition(glm::vec3(0, 0, 10));
 
     Object3D *obj = new Object3D();
-    res = obj->load("Resources/Apple.obj");
+    res = obj->load("Resources/Rose2.obj");
+    obj->rotate(90.0f, obj->right());
+    // obj->rotateGlobal(glm::vec3(0.0f, 0.0f, 0.0f));
+    obj->scale(glm::vec3(0.1f));
+    obj->translateGlobal(glm::vec3(0.0f, 0.f, 0.0f));
     if (!res) return -1;
     obj->setShader(&shader);
 
@@ -55,32 +84,29 @@ int main(int argc, char** argv){
         modelLoc = shader.getUniformLoc("model"),
         projLoc = shader.getUniformLoc("projection"),
         lightPosLoc = shader.getUniformLoc("lightPos"),
-        viewPosLoc = shader.getUniformLoc("viewPos"),
-        lightColor = shader.getUniformLoc("lightColor");
+        lightColLoc = shader.getUniformLoc("lightColor"),
+        viewPosLoc = shader.getUniformLoc("viewPos");
 
-    float lst = 0;
+    lstFrameTime = glfwGetTime();
+
     while (!glfwWindowShouldClose(window))
     {
         processInput();
-
-        glBindVertexArray(obj->getVAO());
-
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        shader.use();
         shader.setUniform(viewLoc, camera.getView());
         shader.setUniform(projLoc, camera.getProj());
-        shader.setUniform(modelLoc, obj->getModelMat());
         shader.setUniform(viewPosLoc, camera.getPosition());
-        shader.setUniform(lightPosLoc, glm::vec3(0.0f, 3.0f, 0.0f));
-        shader.setUniform(lightColor, glm::vec3(1.0f, 0.75f, 0.80f));
-        
-        obj->rotateLocal(glm::vec3(0.1f, 0.0f, 0) * (float)(glfwGetTime() - lst));
+        shader.setUniform(lightPosLoc, glm::vec3(0.0f, 0.0f, 40.0f));
+        shader.setUniform(lightColLoc, glm::vec3(1.0f, 0.75f, 0.80f));
 
-        lst = glfwGetTime();
+        // obj->rotateGlobal(glm::vec3(5.0f * (glfwGetTime() - lst), 0.0f, 0.0f));
+        
+        obj->rotate(5.0f *(float)(glfwGetTime() - lstFrameTime), obj->forward());
+
+        lstFrameTime = glfwGetTime();
 
         obj->display();
-        glBindVertexArray(0);
 
         glfwPollEvents();
         glfwSwapBuffers(window);

@@ -30,11 +30,14 @@ public:
     
     void translateGlobal(const glm::vec3 &vec);
     void translateLocal(const glm::vec3 &vec);
-    void rotateGlobal(const glm::vec3 &angle);
-    void rotateLocal(const glm::vec3 &angle);
+    void rotate(const float angle, const glm::vec3 &axis);
     void rotateAround(const glm::vec3 &pivot, const glm::vec3 &axis, float angle);
     void lookAt(glm::vec3 pos, glm::vec3 up);
     void scale(glm::vec3 vec);
+
+    glm::vec3 right() const;
+    glm::vec3 up() const;
+    glm::vec3 forward() const;
 
     glm::vec3 getRotateEuler() const;
     glm::vec3 getPosition() const;
