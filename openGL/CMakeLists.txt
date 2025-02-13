@@ -20,6 +20,6 @@ target_link_libraries(
     ${PROJECT_NAME}
     OpenGL::GL          # OpenGL 库
     glfw                # GLFW 库
-    GLEW
+    GLEW 
 )
 

@@ -45,7 +45,7 @@ void processInput() {
 
 
 int main(int argc, char** argv){
-    glfwInit();
+    glfwInit(); 
     window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "StudyOpenGL", nullptr, nullptr);
     if (window == NULL)
     {
@@ -67,14 +67,13 @@ int main(int argc, char** argv){
     if (!res) return -1;
     Shader shader(shaderProgram);
 
-    camera.setPosition(glm::vec3(0, 0, 10));
-
+    camera.setPosition(glm::vec3(0, 5, 10));
+    camera.rotate(-25.0f, camera.right());
     Object3D *obj = new Object3D();
-    res = obj->load("Resources/Rose2.obj");
-    obj->rotate(90.0f, obj->right());
-    // obj->rotateGlobal(glm::vec3(0.0f, 0.0f, 0.0f));
+    res = obj->load("Resources/Rose.obj");
+    // obj->rotate(90.0f, obj->right());
+    // obj->rotate(90.0f, obj->right());
     obj->scale(glm::vec3(0.1f));
-    obj->translateGlobal(glm::vec3(0.0f, 0.f, 0.0f));
     if (!res) return -1;
     obj->setShader(&shader);
 
@@ -85,12 +84,17 @@ int main(int argc, char** argv){
         projLoc = shader.getUniformLoc("projection"),
         lightPosLoc = shader.getUniformLoc("lightPos"),
         lightColLoc = shader.getUniformLoc("lightColor"),
-        viewPosLoc = shader.getUniformLoc("viewPos");
+        viewPosLoc = shader.getUniformLoc("viewPos"),
+        breathValLoc = shader.getUniformLoc("breathVal");
 
     lstFrameTime = glfwGetTime();
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     while (!glfwWindowShouldClose(window))
     {
+        
         processInput();
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -99,10 +103,10 @@ int main(int argc, char** argv){
         shader.setUniform(viewPosLoc, camera.getPosition());
         shader.setUniform(lightPosLoc, glm::vec3(0.0f, 0.0f, 40.0f));
         shader.setUniform(lightColLoc, glm::vec3(1.0f, 0.75f, 0.80f));
-
-        // obj->rotateGlobal(glm::vec3(5.0f * (glfwGetTime() - lst), 0.0f, 0.0f));
         
-        obj->rotate(5.0f *(float)(glfwGetTime() - lstFrameTime), obj->forward());
+        shader.setUniform(breathValLoc, (float)glm::sin(glfwGetTime()));
+        
+        obj->rotate(5.0f *(float)(glfwGetTime() - lstFrameTime), obj->up());
 
         lstFrameTime = glfwGetTime();
 
