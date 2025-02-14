@@ -7,12 +7,12 @@
 #include "shader.hpp"
 #include "camera.hpp"
 
-struct Object3DVertix {
+struct Object3DVertex {
     glm::vec3 pos;
     glm::vec3 norv;
     glm::vec2 texc;
-    Object3DVertix() = default;
-    Object3DVertix(const glm::vec3 &pos, const glm::vec3 &norv, const glm::vec2 &texc);
+    Object3DVertex() = default;
+    Object3DVertex(const glm::vec3 &pos, const glm::vec3 &norv, const glm::vec2 &texc);
 };
 
 struct Object3D : BaseObject {
@@ -23,7 +23,7 @@ protected:
     GLuint shaderModelLoc;
 
     size_t numVertices;
-    Object3DVertix *vertices;
+    Object3DVertex *vertices;
 
 public:
     int getVAO() const;
@@ -37,4 +37,7 @@ public:
     Shader *getShader() const;
 
     void display();
+
+    size_t getNumVertices() const;
+    const Object3DVertex &getVertex(size_t index) const;
 };

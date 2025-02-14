@@ -85,7 +85,7 @@ GLint Shader::getUniformLoc(const std::string &name) {
 void Shader::setUniform(GLint loc, float value) { glUniform1f(loc, value); }
 void Shader::setUniform(GLint loc, int value) { glUniform1i(loc, value); }
 void Shader::setUniform(GLint loc, const glm::vec3 &value) { glUniform3fv(loc, 1, &value[0]); }
-void Shader::setUniform(GLint loc, const glm::vec4 &value) { glUniform4fv(loc, 1, &value[1]); }
+void Shader::setUniform(GLint loc, const glm::vec4 &value) { glUniform4fv(loc, 1, &value[0]); }
 void Shader::setUniform(GLint loc, const glm::mat3 &value) {
     glUniformMatrix3fv(loc, 1, GL_FALSE, &value[0][0]);
 }

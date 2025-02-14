@@ -11,8 +11,9 @@ in float disToModel;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
 uniform vec3 lightColor;
+uniform vec4 objColor;
 
-uniform float breathVal;
+uniform float discLyr;
 
 void main() {
     vec3 norm = normalize(Normal);
@@ -24,6 +25,6 @@ void main() {
     vec3 ambient = 0.2 * lightColor;
 
     // **计算最终光照颜色**
-    vec3 result = (ambient + diffuse) * vec3(1.0f, 0.0f, 0.0f);
-    FragColor = vec4(result.rgb, 1.0f + breathVal);
+    vec3 result = (ambient + diffuse) * objColor.xyz;
+    FragColor = vec4(result.rgb, objColor.a / (1.0f + exp((disToModel - discLyr)) / 2));
 }

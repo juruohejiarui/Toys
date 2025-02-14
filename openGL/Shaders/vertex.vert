@@ -21,7 +21,7 @@ void main() {
     Normal = mat3(transpose(inverse(model))) * aNormal;
 
     TexCoord = aTexCoord;
-    disToModel = length(aPos);
+    disToModel = aPos.y;
     
     gl_Position = projection * view * worldPos;
 
